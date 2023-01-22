@@ -11,8 +11,9 @@
 __version__ = '0.2.1'
 
 import math
-
 from PIL import Image
+
+import numpy as np
 
 
 class cached_property(object):
@@ -49,6 +50,59 @@ class ColorThief(object):
         """
         palette = self.get_palette(5, quality)
         return palette[0]
+
+    def get_multi_palette(self, color_count=10, quality=10, palette_num=10, sort=True, black='del'):
+        all_palette = []
+        image = self.image.convert('RGBA')
+        img_nparr = np.array(image)
+        stride = img_nparr.shape[0] // palette_num
+
+        def black_del(img):
+            img = img.reshape(-1, 4)
+            img = np.delete(img, np.all(img[:, :3] == 0, axis=1), axis=0)
+            return img.reshape(1, img.shape[0], 4)
+
+        def black_to_white(img):
+            for i in range(img.shape[0]):
+                for j in range(img.shape[1]):
+                    if img[i, j, 0] == 0 and img[i, j, 1] == 0 and img[i, j, 2] == 0:
+                        img[i, j, 0] = 255
+                        img[i, j, 1] = 255
+                        img[i, j, 2] = 255
+                        img[i, j, 3] = 0
+            return img
+
+        for i in range(palette_num):
+            if i == palette_num - 1:
+                data = img_nparr[i*stride:, :, :]
+            else:
+                data = img_nparr[i*stride:(i+1)*stride, :, :]
+
+            if black == 'del':
+                data = black_del(data)
+            elif black == 'white':
+                data = black_to_white(data)
+            pil = Image.fromarray(data)
+
+            width, height = pil.size
+            pixels = pil.getdata()
+            pixel_count = width * height
+            valid_pixels = []
+            for i in range(0, pixel_count, quality):
+                r, g, b, a = pixels[i]
+                # If pixel is mostly opaque and not white
+                if a >= 125:
+                    if not (r > 250 and g > 250 and b > 250):
+                        valid_pixels.append((r, g, b))
+
+            # Send array to quantize function which clusters values
+            # using median cut algorithm
+            cmap = MMCQ.quantize(valid_pixels, color_count)
+            if sort: pass
+
+            all_palette.append(cmap.palette)
+
+        return all_palette
 
     def get_palette(self, color_count=10, quality=10):
         """Build a color palette.  We are using the median cut algorithm to
