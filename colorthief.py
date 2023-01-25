@@ -100,6 +100,8 @@ class ColorThief(object):
             cmap = MMCQ.quantize(valid_pixels, color_count)
             if sort:
                 res = sorted(cmap.palette, key=lambda x: (x[0], x[1], x[2]), reverse=True)
+            else:
+                res = cmap.palette
 
             all_palette.append(res)
 
