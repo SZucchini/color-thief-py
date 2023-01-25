@@ -3,12 +3,18 @@ Color Thief
 
 A Python module for grabbing the color palette from an image.
 
+Caution
+-------
+This is a forked repository of `color-thief-py
+<https://github.com/fengsp/color-thief-py>`_.
+I added a function that vertically segments the image and extracts the colors.
+
 Installation
 ------------
 
 ::
 
-    $ pip install colorthief
+    $ pip install git+https://github.com/SZucchini/color-thief-py.git
 
 Usage
 -----
@@ -22,6 +28,8 @@ Usage
     dominant_color = color_thief.get_color(quality=1)
     # build a color palette
     palette = color_thief.get_palette(color_count=6)
+    # or build multiple color palettes
+    palettes = color_thief.get_multi_palette(color_count=10, quality=10, palette_num=10, sort=True, black='del'):
 
 API
 ---
@@ -57,6 +65,22 @@ API
             :param quality: quality settings, 1 is the highest quality, the bigger
                             the number, the faster the palette generation, but the
                             greater the likelihood that colors will be missed.
+            :return list: a list of tuple in the form (r, g, b)
+            """
+            pass
+        
+        def get_multi_palette(self, color_count=10, quality=10, palette_num=10, sort=True, black='del'):
+            """Build multiple color palettes.  We are using the median cut algorithm to
+            cluster similar colors.
+
+            :param color_count: the size of the palette, max number of colors
+            :param quality: quality settings, 1 is the highest quality, the bigger
+                            the number, the faster the palette generation, but the
+                            greater the likelihood that colors will be missed.
+            :param palette_num: number of image divisions, 
+                                this number divides the image vertically, yielding multiple palettes
+            :param sort: whether to sort the colors in each palette
+            :param black: delete black pixels
             :return list: a list of tuple in the form (r, g, b)
             """
             pass
